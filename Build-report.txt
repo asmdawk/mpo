@@ -1,0 +1,31 @@
+LiveGames 1.0.0 — build validation, 13 November 2026
+
+Platform: Windows x64 PE32+ GUI executable; native Zig/MinGW launcher.
+Python: official CPython 3.12.10 Windows embeddable x64.
+TikTok adapter: TikTokLive 7.0.1. Dependencies in requirements-win.lock.
+
+PASS: 29 engine and protocol-adapter tests.
+PASS: browser tests against the Python service on Linux.
+PASS: embedded Windows Python and dependency imports under Wine 10.
+PASS: first-run native EXE extraction, all extracted files match payload SHA256.
+PASS: the EXE starts the Windows Python backend under Wine.
+PASS: complete browser end-to-end demo against that Windows backend: 12 players,
+      pause/resume, settings, winner screen, vertical layout, authentication,
+      Host and Origin checks. No browser JS errors.
+PASS: final GUI-subsystem executable starts and responds to its health endpoint.
+PASS: distribution ZIP and source ZIP integrity checks.
+
+LIMITS: native Windows 10/11 and TikTok LIVE Studio capture not tested here.
+No live user LikeEvents were verified on @gameslivex. A two-viewer live test
+is required. TikTok events may be delayed or dropped. No end-to-end latency
+claim. The executable is unsigned.
+
+LiveGames.exe
+SHA256 5fa63fb55746fe5b82d1637ab7840b438fcc65f0e7eb377501333f166eb5903a
+
+LiveGames-Windows.zip
+SHA256 02020c3ff0a0709765c1fa6867e1552cc4628ef0a598f61b7f106f1e447cf547
+
+LiveGames-source.zip
+SHA256 e43f9c64752dc997d36a7c9cdaa15a0479c9d6879d766b5bc9ea0b19b5ed4b62
+
