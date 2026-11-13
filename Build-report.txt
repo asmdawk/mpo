@@ -1,0 +1,31 @@
+Croupyx 2.0.0 / Twitch word game — validation, 13 November 2026
+
+Windows x64 PE32+ GUI EXE; native Zig/MinGW launcher with miniz.
+Official CPython 3.12.10 Windows embed; aiohttp 3.14.5.
+
+PASS: 37 engine / IRC protocol tests.
+PASS: exact, partial, repeated and overlapping guesses; full-word priority;
+      timeout scores / ties; cooldown; pause; stale-message rejection;
+      public secret-word redaction; no twelve-player participation cap.
+PASS: local fake Twitch WebSocket: separate commands, CAP, JOIN, ROOMSTATE,
+      server PING/PONG, IRCv3 tags and PRIVMSG routing; no outgoing PRIVMSG.
+PASS: real Twitch #croupyx JOIN and keepalive under Linux, 23 seconds online.
+PASS: final Windows EXE extracts all 272 embedded files with matching SHA256.
+PASS: final Windows EXE starts and joins real Twitch chat under Wine 10.
+PASS: browser E2E against Windows EXE: demo, substring rendering, timer pause,
+      full-word victory, custom secret, preferences, vertical layout and OBS help.
+PASS: Origin / Host / admin-key guards and public WebSocket privacy.
+PASS: distribution ZIP integrity; no local admin key/settings in archives.
+
+LIMITS: actual Windows 10/11, OBS capture and a game involving real viewer
+messages are not tested here. Twitch IRC anonymous read access can change.
+Avatars are best-effort via public DecAPI to Twitch CDN, initials on failure.
+No guarantee for network latency or Twitch message completeness.
+The EXE is unsigned. Tablo update interval is ~60 ms, not total network latency.
+
+Croupyx.exe
+SHA256 5886038d1edab664553f373d4b031940455755c9b9a522de1f1a79bcfa8c878c
+
+Croupyx-source.zip
+SHA256 5b0cc33fd6fc3bd237f1c1ec024906bc658a78b3cb15d6561958c8f6e07f03b8
+
