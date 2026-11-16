@@ -1,0 +1,59 @@
+{
+  "name": "zigzak-player",
+  "productName": "ZigZak Player",
+  "version": "1.0.0",
+  "description": "ZigZak Player — music and video, beautifully offline",
+  "author": "ZigZak",
+  "license": "MIT",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win portable --x64",
+    "test": "node --test tests/*.test.cjs"
+  },
+  "dependencies": {
+    "music-metadata": "^11.12.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "electron": "45.3.3",
+    "electron-builder": "26.18.0",
+    "resedit": "^1.7.2"
+  },
+  "build": {
+    "appId": "com.zigzak.player",
+    "productName": "ZigZak Player",
+    "directories": {
+      "output": "dist",
+      "buildResources": "resources"
+    },
+    "files": [
+      "electron/**/*",
+      "renderer/**/*",
+      "resources/icon.png",
+      "package.json",
+      "LICENSE"
+    ],
+    "asar": true,
+    "compression": "normal",
+    "afterPack": "tools/after-pack.cjs",
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "resources/icon.ico",
+      "signAndEditExecutable": false,
+      "artifactName": "ZigZak-Player-1.0.0-Windows-x64.exe"
+    },
+    "portable": {
+      "requestExecutionLevel": "user",
+      "unicode": true,
+      "splashImage": "resources/splash.bmp"
+    }
+  }
+}

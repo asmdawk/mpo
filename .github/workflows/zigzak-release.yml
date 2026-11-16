@@ -1,0 +1,115 @@
+name: Build and publish ZigZak Player
+
+on:
+  push:
+    branches:
+      - zigzak-player-release
+
+permissions:
+  contents: write
+
+concurrency:
+  group: zigzak-player-v1-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      ELECTRON_BUILDER_COMPRESSION_LEVEL: '5'
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: zigzak-v1.0.0
+    steps:
+      - name: Check out player source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify backend and media metadata
+        run: npm test
+
+      - name: Build portable Windows executable
+        run: npm run build:win
+
+      - name: Prepare release assets and checksums
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $exe = 'dist/ZigZak-Player-1.0.0-Windows-x64.exe'
+          if (-not (Test-Path $exe)) { throw 'Portable executable was not produced.' }
+          Copy-Item 'README-RU.md' 'dist/ZigZak-Player-Guide.md'
+          Copy-Item 'release-assets/ZigZak-Player-preview.png' 'dist/ZigZak-Player-preview.png'
+          git archive --format=zip --output=dist/ZigZak-Player-Source.zip HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'Source archive creation failed.' }
+
+          $assets = @(
+            'ZigZak-Player-1.0.0-Windows-x64.exe',
+            'ZigZak-Player-Source.zip',
+            'ZigZak-Player-preview.png',
+            'ZigZak-Player-Guide.md'
+          )
+          $checksums = foreach ($name in $assets) {
+            $hash = (Get-FileHash (Join-Path 'dist' $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $name"
+          }
+          $checksums | Set-Content 'dist/SHA256SUMS.txt' -Encoding utf8
+          $exeHash = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          $exeBytes = (Get-Item $exe).Length
+          $notes = @"
+          # ZigZak Player 1.0.0
+
+          Переносимый проигрыватель музыки и видео для Windows 10/11 x64. Скачайте **ZigZak-Player-1.0.0-Windows-x64.exe** и запустите — установка и права администратора не нужны.
+
+          - MP3 и MP4, плейлисты, поиск, избранное и история прослушивания.
+          - Интерфейс Aurora и три темы оформления: Aurora, Violet и Sunset.
+          - Десятиполосный эквалайзер с готовыми профилями, скорость воспроизведения и таймер сна.
+          - Перетаскивание файлов, перемотка, повтор, случайный порядок и полноэкранное видео.
+          - Сохранение библиотеки, настроек и позиции воспроизведения.
+
+          Сборка выполнена в GitHub Actions на Windows. Автоматические проверки backend и чтения метаданных MP3/MP4 пройдены. Воспроизведение проверялось в Linux/Electron, включая упакованный ASAR; ручная проверка приложения на Windows не выполнялась.
+
+          Файл не подписан цифровым сертификатом. Windows может показать уведомление о неизвестном издателе.
+
+          **Размер EXE:** $exeBytes байт  
+          **SHA-256 EXE:** $exeHash
+
+          Исходники, снимок интерфейса, русская инструкция и контрольные суммы приложены ниже.
+          "@
+          $notes | Set-Content 'dist/release-notes.md' -Encoding utf8
+          "EXE SHA-256: $exeHash" | Add-Content $env:GITHUB_STEP_SUMMARY
+          "EXE size: $exeBytes bytes" | Add-Content $env:GITHUB_STEP_SUMMARY
+
+      - name: Upload all assets to the existing draft release
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          gh release view $env:RELEASE_TAG --repo $env:GH_REPO
+          if ($LASTEXITCODE -ne 0) { throw 'The requested draft release does not exist or is inaccessible.' }
+          gh release upload $env:RELEASE_TAG `
+            'dist/ZigZak-Player-1.0.0-Windows-x64.exe' `
+            'dist/ZigZak-Player-Source.zip' `
+            'dist/ZigZak-Player-preview.png' `
+            'dist/ZigZak-Player-Guide.md' `
+            'dist/SHA256SUMS.txt' `
+            --repo $env:GH_REPO --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'Release asset upload failed; release has not been published.' }
+
+      - name: Publish the release
+        shell: pwsh
+        run: |
+          gh release edit $env:RELEASE_TAG `
+            --repo $env:GH_REPO `
+            --target $env:GITHUB_SHA `
+            --title 'ZigZak Player 1.0.0' `
+            --notes-file 'dist/release-notes.md' `
+            --draft=false
+          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed.' }
